@@ -24,23 +24,25 @@ class SSDDetector:
         # predictions
         self.net.setInput(blob)
         detections = self.net.forward().squeeze()
-        # predictions has shape (1, 1, 100, 7). The represent 100 most condident predictions
-        # 7 numbers are: ??, class idx, confidence, *bbox coords
+        # filter only persons
+        detections = detections[detections[:, 1] == 15][:, 2:]
+        # change conf, *bbox_coords => *bbox_coords, conf
+        detections = np.roll(detections, -1, 1)
+        h, w = frame.shape[:2]
+        detections[:, :4] *= np.array([w, h, w, h])
         return detections
 
     def draw_predict(self, frame, detections):
         THR = 0.5 # threshold for predictions
         h, w = frame.shape[:2]
-        detections = detections[detections[:, 2] > THR]
+        detections = detections[detections[:, 4] > THR]
         for det in detections:
-            idx = int(det[1])
-            box = det[3:7] * np.array([w, h, w, h])
+            box = det[:4] #* np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype(int)
             # draw the prediction on the frame
-            label = "{}: {:.2f}%".format(CLASSES[idx], det[2] * 100)
-            cv2.rectangle(frame, (startX, startY), (endX, endY), COLORS[idx], 2)
+            cv2.rectangle(frame, (startX, startY), (endX, endY), (0,0,255), 2)
             y = startY - 15 if startY - 15 > 15 else startY + 15
-            cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
+            cv2.putText(frame, 'person', (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
         return frame
 
 # HAARS detector is less robust and works just slighlty faster
