@@ -28,8 +28,6 @@ class SSDDetector:
         detections = detections[detections[:, 1] == 15][:, 2:]
         # change conf, *bbox_coords => *bbox_coords, conf
         detections = np.roll(detections, -1, 1)
-        h, w = frame.shape[:2]
-        detections[:, :4] *= np.array([w, h, w, h])
         return detections
 
     def draw_predict(self, frame, detections):
@@ -37,7 +35,7 @@ class SSDDetector:
         h, w = frame.shape[:2]
         detections = detections[detections[:, 4] > THR]
         for det in detections:
-            box = det[:4] #* np.array([w, h, w, h])
+            box = det[:4] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype(int)
             # draw the prediction on the frame
             cv2.rectangle(frame, (startX, startY), (endX, endY), (0,0,255), 2)
@@ -69,3 +67,18 @@ class HaarDetector:
             y = startY - 15 if startY - 15 > 15 else startY + 15
             cv2.putText(frame, 'face', (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
         return frame 
+
+class ObjectTracker:
+    def __init__(self):
+        #self.tracker = cv2.TrackerMOSSE_create() # MOSSE is faster
+        self.tracker = cv2.TrackerKCF_create()
+
+    def update(self, frame, bbox=None):
+        if bbox is not None and len(bbox) > 0:
+            self.tracker.init(frame, tuple(bbox[0]))
+            return bbox
+        retval, bbox_out = self.tracker.update(frame)
+        if not retval:
+            # Tracking has failed
+            pass 
+        return bbox_out

@@ -5,8 +5,7 @@ import numpy as np
 from imutils.video import FPS
 from imutils.video import VideoStream
 from motion_detection import MotionDetector 
-from person_detection import SSDDetector, HaarDetector
-from person_tracking import Sort
+from person_detection import SSDDetector, HaarDetector, ObjectTracker
 from utils import FPSMeter
 
 
@@ -14,7 +13,7 @@ vs = VideoStream(src=0).start()
 time.sleep(2.0)
 bg = MotionDetector(mem_time=5)
 object_det = SSDDetector()
-tracker = Sort()
+tracker = ObjectTracker()
 
 fps = FPSMeter()
 idx = 0
@@ -23,18 +22,15 @@ while True:
     frame = imutils.resize(frame, width=400)
     frame_bg = bg.update(frame)
 
-    # if (idx % 10) == 0:
-    # print('upd det')
-    detections = object_det.predict(cv2.resize(frame, (300, 300)))
-    print(detections)
-    res = tracker.update(detections)
-    #print(tracker.trackers)
-    print(res)
-    # else:
-    #     res = tracker.update([])
-    # idx += 1
-    #detections = tracker.update(detections)
-
+    if (idx % 1) == 0:
+        detections = object_det.predict(cv2.resize(frame, (300, 300)))
+        h, w = frame.shape[:2]
+        _ = tracker.update(frame, detections[:, :4] * [w, h, w, h])
+    else:
+        detections = tracker.update(frame)
+        detections = np.array([list(detections) + [1,]])
+    idx += 1
+    # detections = object_det.predict(cv2.resize(frame, (300, 300)))
     frame2 = object_det.draw_predict(frame, detections)
 
     cv2.putText(frame2, "FPS: {:.2f}".format(fps.fps), (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
