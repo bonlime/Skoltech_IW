@@ -23,22 +23,25 @@ while True:
     frame = imutils.resize(frame, width=400)
     frame_bg = bg.update(frame)
     recorder.record(frame, bg.has_motion)
-    # print(vs.stream.get(3), vs.stream.get(4))
-    # if (idx % 1) == 0:
-    #     detections = object_det.predict(cv2.resize(frame, (300, 300)))
-    #     h, w = frame.shape[:2]
-    #     _ = tracker.update(frame, detections[:, :4] * [w, h, w, h])
+    if bg.has_motion:
+        detections = object_det.predict(cv2.resize(frame, (300, 300)))
+        frame = object_det.draw_predict(frame, detections)
+        # if idx%10 == 0: #run detection only every 10th frame
+        #     h, w = frame.shape[:2]
+        #     _ = tracker.update(frame, detections[:, :4] * [w, h, w, h])
+        # else:
+        #     pass
+    
+    
     # else:
     #     detections = tracker.update(frame)
     #     detections = np.array([list(detections) + [1,]])
     # idx += 1
     # # detections = object_det.predict(cv2.resize(frame, (300, 300)))
-    # frame2 = object_det.draw_predict(frame, detections)
-    frame2 = frame
-    cv2.putText(frame2, "FPS: {:.2f}".format(fps.fps), (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-    cv2.putText(frame2,('Not Recording', 'Recording')[bg.has_motion],(10,25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-    bg.has_motion
-    cv2.imshow('original', frame2)
+    # 
+    cv2.putText(frame, "FPS: {:.2f}".format(fps.fps), (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+    cv2.putText(frame,('Not Recording', 'Recording')[bg.has_motion],(10,25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+    cv2.imshow('original', frame)
     cv2.imshow('fg', frame_bg)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):

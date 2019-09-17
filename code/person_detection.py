@@ -70,8 +70,10 @@ class HaarDetector:
 
 class ObjectTracker:
     def __init__(self):
+        """Tracks multiple objects on scenes"""
+        self.tracker = cv2.MultiTracker_create()
         #self.tracker = cv2.TrackerMOSSE_create() # MOSSE is faster
-        self.tracker = cv2.TrackerKCF_create()
+        #self.tracker = cv2.TrackerKCF_create()
 
     def update(self, frame, bbox=None):
         if bbox is not None and len(bbox) > 0:
