@@ -16,6 +16,8 @@ class SSDDetector:
         self.net = cv2.dnn.readNetFromCaffe(PATH_TO_PROTO, PATH_TO_MODEL)
 
     def predict(self, frame):
+        """Returns array (100, 5). 5 numbers are:
+        x_min, y_min, x_max, y_max, conf """
         # normalize image
         #frame = np.expand_dims(frame, 0)
         blob = cv2.dnn.blobFromImage(frame, 0.007843, (300, 300), 127.5)
