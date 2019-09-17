@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-PATH_TO_PROTO = 'workdir/mbln_v1_ssd.prototxt'
-PATH_TO_MODEL = 'workdir/mbln_v1_ssd.caffemodel'
+PATH_TO_PROTO = 'input/mbln_v1_ssd.prototxt'
+PATH_TO_MODEL = 'input/mbln_v1_ssd.caffemodel'
 CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
 	"bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
 	"dog", "horse", "motorbike", "person", "pottedplant", "sheep",
@@ -44,8 +44,8 @@ class SSDDetector:
         return frame
 
 # HAARS detector is less robust and works just slighlty faster
-PATH_TO_FACE = 'workdir/face_classifier.xml'
-PATH_TO_BODY = 'workdir/full_body.xml'
+PATH_TO_FACE = 'input/face_classifier.xml'
+PATH_TO_BODY = 'input/full_body.xml'
 class HaarDetector:
     def __init__(self):
         self.face_cascade = cv2.CascadeClassifier(PATH_TO_FACE)
