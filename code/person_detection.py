@@ -20,7 +20,7 @@ class SSDDetector:
         x_min, y_min, x_max, y_max, conf """
         # normalize image
         #frame = np.expand_dims(frame, 0)
-        blob = cv2.dnn.blobFromImage(frame, 0.007843, (300, 300), 127.5)
+        blob = cv2.dnn.blobFromImage(frame, 1/127.5, (300, 300), 127.5)
 
         # pass the blob through the network and obtain the detections and
         # predictions
@@ -35,7 +35,8 @@ class SSDDetector:
     def draw_predict(self, frame, detections):
         THR = 0.5 # threshold for predictions
         h, w = frame.shape[:2]
-        detections = detections[detections[:, 4] > THR]
+        if len(detections) > 0 and detections.shape[1] == 5:
+            detections = detections[detections[:, 4] > THR]
         for det in detections:
             box = det[:4] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype(int)

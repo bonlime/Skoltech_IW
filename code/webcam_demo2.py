@@ -2,30 +2,46 @@ import cv2
 import time
 import imutils
 import numpy as np 
+import argparse
 from imutils.video import FPS
 from imutils.video import VideoStream
 from motion_detection import MotionDetector 
 from person_detection import SSDDetector, HaarDetector, ObjectTracker
 from utils import FPSMeter, VideoRecorder
 
-
-vs = VideoStream(src=0).start()
+parser = argparse.ArgumentParser()
+parser.add_argument('--inp', type=str)
+ARGS = parser.parse_args()
+vs = cv2.VideoCapture(ARGS.inp or 0)
+#vs = VideoStream(src=ARGS.inp or 0).start()
 time.sleep(2.0)
 bg = MotionDetector(mem_time=5)
 object_det = SSDDetector()
-tracker = ObjectTracker()
-frame = vs.read()
+_, frame = vs.read()
 recorder = VideoRecorder(h=300, w=400, mem_time=10)
 fps = FPSMeter()
 idx = 0
+tracker = cv2.MultiTracker_create()
 while True:
-    frame = vs.read()
+    _, frame = vs.read()
     frame = imutils.resize(frame, width=400)
     frame_bg = bg.update(frame)
     recorder.record(frame, bg.has_motion)
     if bg.has_motion:
-        detections = object_det.predict(cv2.resize(frame, (300, 300)))
-        frame = object_det.draw_predict(frame, detections)
+        if idx % 100 == 0:
+            detections = object_det.predict(cv2.resize(frame, (300, 300)))
+            #tracker = cv2.MultiTracker_create()
+            for det in detections:
+                box = (det[0], det[1], det[2]-det[0], det[3]-det[1])
+                tracker.add(cv2.TrackerKCF_create(), frame, box)
+            boxes = detections
+        else:
+            print(tracker.getObjects())
+            success, boxes = tracker.update(frame)
+            print(tracker.getObjects())
+            boxes = np.array([(b[0],b[1],b[0]+b[2],b[1]+b[3]) for b in boxes])
+        frame = object_det.draw_predict(frame, boxes)
+    idx += 1
         # if idx%10 == 0: #run detection only every 10th frame
         #     h, w = frame.shape[:2]
         #     _ = tracker.update(frame, detections[:, :4] * [w, h, w, h])
